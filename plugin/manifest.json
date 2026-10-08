@@ -1,0 +1,40 @@
+{
+  "manifestVersion": 5,
+  "id": "com.retoucher.lutpreview",
+  "name": "大强LUT预览",
+  "version": "1.9.2",
+  "main": "index.html",
+  "host": {
+    "app": "PS",
+    "minVersion": "23.3.0"
+  },
+  "entrypoints": [
+    {
+      "type": "panel",
+      "id": "lutPanel",
+      "label": {
+        "default": "大强LUT预览"
+      },
+      "minimumSize": {
+        "width": 230,
+        "height": 200
+      },
+      "maximumSize": {
+        "width": 2000,
+        "height": 2000
+      },
+      "preferredDockedSize": {
+        "width": 320,
+        "height": 480
+      },
+      "preferredFloatingSize": {
+        "width": 360,
+        "height": 520
+      }
+    }
+  ],
+  "requiredPermissions": {
+    "localFileSystem": "fullAccess",
+    "clipboard": "readAndWrite"
+  }
+}
