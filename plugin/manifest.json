@@ -1,8 +1,8 @@
 {
   "manifestVersion": 5,
-  "id": "com.retoucher.lutpreview",
-  "name": "大强LUT预览",
-  "version": "1.9.2",
+  "id": "com.retoucher.lutpreview21",
+  "name": "大强LUT预览2.1",
+  "version": "2.1.0",
   "main": "index.html",
   "host": {
     "app": "PS",
@@ -11,9 +11,9 @@
   "entrypoints": [
     {
       "type": "panel",
-      "id": "lutPanel",
+      "id": "lutPanel21",
       "label": {
-        "default": "大强LUT预览"
+        "default": "大强LUT预览2.1"
       },
       "minimumSize": {
         "width": 230,

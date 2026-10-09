@@ -40,8 +40,13 @@ const intensity = () => Number($("intensity").value) / 100;
 
 function appendTile(tile) {
   tileEls.push(tile);
+  placeTile(tile);
+}
+
+function placeTile(tile) {
+  if (tile._hdr) { grid.appendChild(tile); return; }
   let line = grid.lastChild;
-  if (!line || line.childNodes.length >= Math.max(1, tileCols)) {
+  if (!line || !line.classList.contains("line") || line.childNodes.length >= Math.max(1, tileCols)) {
     line = document.createElement("div");
     line.className = "line";
     grid.appendChild(line);
@@ -51,15 +56,9 @@ function appendTile(tile) {
 
 function reflow() {
   grid.innerHTML = "";
-  const cols = Math.max(1, tileCols);
-  for (let i = 0; i < tileEls.length; i += cols) {
-    const line = document.createElement("div");
-    line.className = "line";
-    for (let j = i; j < Math.min(i + cols, tileEls.length); j++) {
-      tileEls[j].style.width = tileW + "px";
-      line.appendChild(tileEls[j]);
-    }
-    grid.appendChild(line);
+  for (const t of tileEls) {
+    if (!t._hdr) t.style.width = tileW + "px";
+    placeTile(t);
   }
 }
 
@@ -76,7 +75,7 @@ function layout() {
     const colsChanged = cols !== tileCols;
     tileW = w;
     tileCols = cols;
-    tileEls.forEach((t) => (t.style.width = w + "px"));
+    tileEls.forEach((t) => { if (!t._hdr) t.style.width = w + "px"; });
     if (colsChanged) reflow();
   }
 }
@@ -334,6 +333,81 @@ function addTile(name, url, item, errMsg) {
   appendTile(tile);
 }
 
+// ---------- 常用 LUT：按双击次数统计，排在最前面 ----------
+const FAV_COUNT = 9; // 3 × 3 九宫格
+function loadUsage() {
+  try { return JSON.parse(localStorage.getItem("lutUsage") || "{}") || {}; } catch (e) { return {}; }
+}
+function bumpUsage(fileName) {
+  try {
+    const u = loadUsage();
+    u[fileName] = (u[fileName] || 0) + 1;
+    localStorage.setItem("lutUsage", JSON.stringify(u));
+  } catch (e) { /* 存不了就算了 */ }
+}
+let favOpen = true;
+try { favOpen = localStorage.getItem("lutFavOpen") !== "0"; } catch (e) { /* ignore */ }
+
+function addHeader(text, onClick, tip) {
+  const h = document.createElement("div");
+  h._hdr = true;
+  h.className = "hdr" + (onClick ? " click" : "");
+  h.textContent = text;
+  if (tip) h.title = tip;
+  if (onClick) h.addEventListener("click", onClick);
+  appendTile(h);
+}
+
+// 本次渲染的缩略图结果缓存：展开/折叠“常用”时不用重新计算
+let cache = { orig: null, map: new Map(), complete: false };
+
+function makeOrder(list, kw) {
+  const usage = loadUsage();
+  const top = kw ? [] : list
+    .filter((f) => usage[f.fileName] > 0)
+    .sort((a, b) => usage[b.fileName] - usage[a.fileName] || a.name.localeCompare(b.name))
+    .slice(0, FAV_COUNT);
+  const order = [];
+  if (top.length) {
+    // “常用”标题 → 原图（紧挨着常用 LUT，方便对比）→ 常用 LUT → “全部”
+    order.push({ hdr: `${favOpen ? "▾" : "▸"} 常用（${top.length}）`, fav: true });
+    order.push({ orig: true });
+    if (favOpen) {
+      top.forEach((f) => order.push({ item: f }));
+      order.push({ hdr: "全部" });
+      list.filter((f) => !top.includes(f)).forEach((f) => order.push({ item: f }));
+      return order;
+    }
+  } else {
+    order.push({ orig: true });
+  }
+  list.forEach((f) => order.push({ item: f }));
+  return order;
+}
+
+function toggleFav(e) {
+  if (e && e.altKey) {
+    try { localStorage.removeItem("lutUsage"); } catch (err) { /* ignore */ }
+    setStatus("已清空使用记录");
+    renderAll();
+    return;
+  }
+  favOpen = !favOpen;
+  try { localStorage.setItem("lutFavOpen", favOpen ? "1" : "0"); } catch (e) { /* ignore */ }
+  if (!cache.complete) { renderAll(); return; }
+  const top0 = scrollBox.scrollTop;
+  const kw = $("filter").value.trim().toLowerCase();
+  const list = lutFiles.filter((f) => !kw || f.name.toLowerCase().includes(kw));
+  grid.innerHTML = "";
+  tileEls = [];
+  for (const o of makeOrder(list, kw)) {
+    if (o.orig) addTile("原图", cache.orig, null);
+    else if (o.hdr) addHeader(o.hdr, o.fav ? toggleFav : null, o.fav ? "点击折叠/展开；按住 Alt 点击清空使用记录" : null);
+    else { const c = cache.map.get(o.item.fileName); if (c) addTile(o.item.name, c.url, o.item, c.err); }
+  }
+  scrollBox.scrollTop = top0;
+}
+
 let resetScroll = false; // 搜索词变化时回到顶部，其余刷新保持当前滚动位置
 async function renderAll() {
   const token = ++renderToken;
@@ -372,26 +446,37 @@ async function renderAll() {
     tileEls = [];
     scrollBox.scrollTop = keepTop;
     const origUrl = await toDataUrl(thumb.data, thumb.width, thumb.height);
-    addTile("原图", origUrl, null);
+    cache = { orig: origUrl, map: new Map(), complete: false };
 
     const mix = intensity();
     let bad = 0;
     let firstBad = "";
-    for (let i = 0; i < list.length; i++) {
+    const order = makeOrder(list, kw);
+    let done = 0;
+    const total = list.length;
+    for (const o of order) {
       if (token !== renderToken) return; // 被新的渲染取代
+      if (o.orig) { addTile("原图", origUrl, null); continue; }
+      if (o.hdr) { addHeader(o.hdr, o.fav ? toggleFav : null, o.fav ? "点击折叠/展开；按住 Alt 点击清空使用记录" : null); continue; }
+      const f = o.item;
       try {
-        const lut = await loadLut(list[i]);
+        const lut = await loadLut(f);
         const out = applyLUT(thumb.data, lut, mix);
-        addTile(list[i].name, await toDataUrl(out, thumb.width, thumb.height), list[i]);
+        const url = await toDataUrl(out, thumb.width, thumb.height);
+        cache.map.set(f.fileName, { url, err: null });
+        addTile(f.name, url, f);
       } catch (e) {
         bad++;
-        if (!firstBad) firstBad = `${list[i].fileName}：${e.message}`;
-        addTile(list[i].name, origUrl, list[i], e.message);
+        if (!firstBad) firstBad = `${f.fileName}：${e.message}`;
+        cache.map.set(f.fileName, { url: origUrl, err: e.message });
+        addTile(f.name, origUrl, f, e.message);
       }
-      setStatus(`渲染预览 ${i + 1} / ${list.length}`);
+      done++;
+      setStatus(`渲染预览 ${done} / ${total}`);
       await tick();
-      if (scrollBox.scrollTop !== keepTop && i % 8 === 0) scrollBox.scrollTop = keepTop;
+      if (scrollBox.scrollTop !== keepTop && done % 8 === 0) scrollBox.scrollTop = keepTop;
     }
+    cache.complete = true;
     grid.style.minHeight = "";
     scrollBox.scrollTop = keepTop;
     let msg = `共 ${list.length} 个 LUT，双击缩略图添加颜色查找图层`;
@@ -553,6 +638,7 @@ async function createColorLookup(item) {
     }
 
     if (used) {
+      bumpUsage(item.fileName);
       await core.executeAsModal(async () => {
         await batchPlay([{ _obj: "set", _target: [TARGET_LAYER], to: { _obj: "layer", name: item.name } }], {});
         if (opacity < 100) {

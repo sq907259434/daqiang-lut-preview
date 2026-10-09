@@ -114,3 +114,13 @@ input[type="text"] {
   border-color: #6fa0ff;
 }
 #filter { margin-right: 4px; }
+
+.hdr {
+  margin: 6px 4px 2px 4px;
+  color: #999;
+  font-size: 11px;
+}
+.hdr.click {
+  cursor: pointer;
+  color: #ccc;
+}

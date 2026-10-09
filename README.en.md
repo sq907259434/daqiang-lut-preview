@@ -1,4 +1,4 @@
-# Daqiang LUT Preview (大强LUT预览)
+# Daqiang LUT Preview 2.1 (大强LUT预览2.1)
 
 [中文](README.md) | **English**
 
@@ -14,6 +14,7 @@ Built for retouchers: no more clicking through the Color Lookup LUT list one by 
   - The Properties panel shows the real loaded 3D LUT, so you can drag the layer onto other photos to keep a whole set consistent
 - Supports `.cube` and `.3dl` (including common packs such as VSCO)
 - Auto-detects Photoshop's built-in `Presets/3DLUTs` folder; you can also pick any folder manually
+- **Frequently used**: your 9 most-used LUTs (by double-click count) are pinned to the top, and the section can be collapsed
 - Search, intensity and thumbnail size; thumbnail sharpness scales with the size
 - Auto-refreshes when you switch to another photo (can be turned off), plus a manual refresh; scroll position is kept after a refresh
 
@@ -21,7 +22,7 @@ Built for retouchers: no more clicking through the Color Lookup LUT list one by 
 
 1. Download `DaqiangLUTPreview-vX.Y.Z.ccx` from [Releases](../../releases)
 2. Double-click the `.ccx` to install (it launches Photoshop's plugin installer)
-3. Restart Photoshop and open the panel from **Plugins → 大强LUT预览**
+3. Restart Photoshop and open the panel from **Plugins → 大强LUT预览2.1**
 
 For development you can also load the `plugin/` folder of this repository with Adobe's **UXP Developer Tool**.
 
@@ -33,6 +34,7 @@ For development you can also load the `plugin/` folder of this repository with A
 | --- | --- |
 | Open the panel | Open a photo in Photoshop first |
 | Double-click a thumbnail | Create a Color Lookup adjustment layer with that LUT loaded |
+| "Frequently used" header | Click to collapse/expand; **Alt+click** to clear usage history. Order updates on the next refresh; not shown while searching |
 | Search box | Filter LUTs by name |
 | Folder icon | Choose a LUT folder; **Alt+click** to go back to Photoshop's built-in folder |
 | Auto refresh on switch | On: previews update when you switch to another photo |

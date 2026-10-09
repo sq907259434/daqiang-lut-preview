@@ -1,5 +1,14 @@
 # 更新记录
 
+## 2.1.0
+- 更名为“大强LUT预览2.1”，使用新的插件 ID，可与旧版、2.0 同时安装
+- “常用”区改为 9 个（3×3 九宫格）
+- “原图”移到“常用”标题下面、紧挨着常用 LUT，方便对比；折叠“常用”时原图仍然显示
+
+## 2.0.0（原 1.10.0）
+- 更名为“大强LUT预览2.0”，使用新的插件 ID，可与旧版同时安装
+- 新增“常用”区：按双击使用次数，把最常用的 8 个 LUT 排在最前面；点击标题可折叠/展开（Alt+点击清空使用记录）
+
 ## 1.9.2
 - 修复右侧滚动条超出面板边框
 - 刷新预览后保持滚动位置（搜索词变化时回到顶部）
@@ -23,6 +32,14 @@
 ---
 
 # Changelog (English)
+
+## 2.1.0
+- Renamed to "大强LUT预览2.1" with a new plugin ID, so it can coexist with the old version and 2.0
+- The "Frequently used" section now holds 9 LUTs (a 3×3 grid)
+- The original image is moved right under the "Frequently used" header, next to those LUTs, for easy comparison; it stays visible when the section is collapsed
+
+## 2.0.0 (was 1.10.0)
+- New "Frequently used" section: your 8 most-used LUTs (by double-click count) are pinned to the top; click the header to collapse/expand (Alt+click clears usage history)
 
 ## 1.9.2
 - Fixed the scrollbar extending outside the panel frame
